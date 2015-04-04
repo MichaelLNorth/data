@@ -7,28 +7,37 @@ module('FindCoalescer', {
   setup: function() {
     store = createStore({
       adapter: DS.RESTAdapter.extend({
-        buildURL: function(type, id, record) {
-          debugger;
-        },
-        modelFactoryFor: function (key) {
-          return {
-            'user': User,
-            'boat': Boat,
-            'comment': Comment
-          }[key];
-        },
-        
+        // Copied and modified from adapters/rest-adapter/group-records-for-find-many-test.js
         ajax: function(url, type, options) {
-          debugger;
+          var key = url.split('/')[1];
+          var testRecords = options.data.ids.map(function(id) {
+            return { id: id };
+          });
+          var result = {};
+          result[key] = testRecords;
+          return Promise.resolve(result);
         }
       })
     });
 
+    store.modelFactoryFor = function (key) {
+      return {
+        'user': User,
+        'boat': Boat,
+        'comment': Comment
+      }[key];
+    };
+
     finder = new DS.Store.FindCoalescer(store);
 
+    // Because we're stubbing out the model factories we need to manually
+    // set the typeKey
     User = DS.Model.extend({});
+    User.typeKey = 'user';
     Boat = DS.Model.extend({});
+    Boat.typeKey = 'boat';
     Comment = DS.Model.extend({});
+    Comment.typeKey = 'comment';
   }
 });
 
@@ -51,8 +60,10 @@ test('find 3 of same type: all succeed', function() {
     run.scheduleOnce('afterRender', function () {
       Promise.all([first, second, third]).then(function() {
         start();
-        debugger;
-        // completed
+        //TODO:  What is a better set of assertions?
+        equal(first._result.id, '1');
+        equal(second._result.id, '2');
+        equal(third._result.id, '3');
       });
     });
   });

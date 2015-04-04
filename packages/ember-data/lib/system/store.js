@@ -21,7 +21,7 @@ import {
   _guard,
   _objectIsAlive,
   coerceId
-} from "ember-data/system/utils/common";
+} from "ember-data/system/store/common";
 
 import {
   serializerForAdapter

@@ -1,10 +1,10 @@
 import {
   _findMany
-} from "ember-data/system/utils/finders";
+} from "ember-data/system/store/finders";
 
 import {
   coerceId
-} from "ember-data/system/utils/common";
+} from "ember-data/system/store/common";
 
 var get = Ember.get;
 
@@ -74,9 +74,7 @@ FindCoalescer.prototype._findMany = function(map, type) {
     }
   });
 
-  var adapter = this.store.adapterFor({
-    typeKey: type
-  });
+  var adapter = this.store.adapterFor(type);
 
   var ids = a_map(missing, function(record) {
     return get(record, 'id');
@@ -89,7 +87,7 @@ FindCoalescer.prototype._findMany = function(map, type) {
     return _findMany(adapter, store, type, ids, group).then(function() {
       a_forEach(group, function(record) {
         if (isLoaded(record)) {
-          map.get(record).resolve(record);
+          map.get(coerceId(record.id)).resolve(record);
         } else {
           Ember.Logger.warn('expected: ' + type + ' id: ' + record.id);
         }
@@ -111,10 +109,10 @@ FindCoalescer.prototype.find = function(type, id) {
   this._begin();
 
   // Check to see if this record has already been requested
-  var existingFind = finder._pending.get(type).get(record);
+  var existingFind = finder._pending.get(type).get(coerceId(id));
   var promise = null;
 
-  var record = this.store.recordForId(type, id);
+  //var record = this.store.recordForId(type, id);
 
   if (existingFind) {
     // Already requested, return the existing promise
